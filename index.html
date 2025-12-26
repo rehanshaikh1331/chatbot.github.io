@@ -93,7 +93,6 @@
 
     .history-list { flex: 1; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
 
-    /* Updated Chat Item Styles */
     .chat-item {
         padding: 10px 12px;
         margin-bottom: 8px;
@@ -133,7 +132,6 @@
     
     .chat-item:hover .chat-actions { opacity: 1; }
 
-    /* Icon Buttons (Edit/Delete) */
     .icon-btn {
         background: none;
         border: none;
@@ -244,18 +242,15 @@
 </div>
 
 <script>
-    /* --- CONFIGURATION --- */
-    const API_KEY = "AIzaSyBIBkDzkSj8U8ZZ8C-LDk6qelJE4qukoiY"; // Replace with your key
+    const API_KEY = "AIzaSyBIBkDzkSj8U8ZZ8C-LDk6qelJE4qukoiY"; 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1/models";
 
-    /* --- STATE --- */
     let state = {
         chats: JSON.parse(localStorage.getItem('glass_chats')) || [],
         activeChatId: null,
         modelEndpoint: ""
     };
 
-    /* --- INIT --- */
     async function init() {
         await findModel();
         if (state.chats.length === 0) createNewChat();
@@ -269,7 +264,6 @@
             const res = await req.json();
             const models = res.models || [];
             
-            // Prefer newer/faster models
             const preferred = ["models/gemini-2.0-flash-exp", "models/gemini-1.5-flash", "models/gemini-1.5-pro"];
             const selected = preferred.find(p => models.some(m => m.name === p)) || models[0]?.name || "gemini-pro";
             
@@ -282,7 +276,6 @@
         }
     }
 
-    /* --- CHAT LOGIC --- */
     function createNewChat() {
         const id = Date.now().toString();
         const chat = { id, title: "New Conversation", msgs: [], time: Date.now() };
@@ -296,7 +289,7 @@
 
     function loadChat(id) {
         state.activeChatId = id;
-        renderSidebar(); // Update active highlight
+        renderSidebar(); 
         renderMessages();
         toggleSidebar(false);
     }
@@ -323,16 +316,13 @@
         }
     }
 
-    /* --- RENDERING --- */
     function renderSidebar() {
         const query = document.getElementById('searchInput').value.toLowerCase();
         const list = document.getElementById('historyList');
         list.innerHTML = "";
 
-        // Filter based on search
         let displayChats = state.chats.filter(c => c.title.toLowerCase().includes(query));
 
-        // Sort: Prioritize exact starts-with matches for the "Search first" requirement
         if (query) {
             displayChats.sort((a, b) => {
                 const titleA = a.title.toLowerCase();
@@ -397,7 +387,6 @@
         const chat = state.chats.find(c => c.id === state.activeChatId);
         chat.msgs.push({ role: "user", text });
         
-        // Auto-title first message
         if(chat.msgs.length === 1) {
             chat.title = text.length > 25 ? text.substring(0, 25) + "..." : text;
             renderSidebar();
