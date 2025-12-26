@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Gemini Chatbot</title>
+<title>Gemini Glass UI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     :root {
@@ -13,8 +13,6 @@
         --accent-glow: rgba(139, 92, 246, 0.4);
         --text-main: #ffffff;
         --text-muted: #9ca3af;
-        --bot-bubble: rgba(255, 255, 255, 0.05);
-        --user-bubble: #8b5cf6;
     }
 
     * { box-sizing: border-box; outline: none; }
@@ -22,9 +20,10 @@
     body {
         margin: 0;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        /* Animated Mesh Gradient Background */
-      background-image: url(https://img.freepik.com/free-vector/gradient-cyber-futuristic-background_23-2149117429.jpg?semt=ais_hybrid&w=740&q=80);
-        background-size: 100% 100%;
+        /* Background Image */
+        background-image: url(https://img.freepik.com/free-vector/gradient-cyber-futuristic-background_23-2149117429.jpg?semt=ais_hybrid&w=740&q=80);
+        background-size: cover;
+        background-position: center;
         color: var(--text-main);
         height: 100vh;
         overflow: hidden;
@@ -33,7 +32,6 @@
         align-items: center;
     }
 
-    /* --- Glass Container Layout --- */
     .app-container {
         width: 100%;
         height: 100%;
@@ -51,8 +49,9 @@
         display: flex;
         flex-direction: column;
         padding: 20px;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s ease;
         z-index: 10;
+        flex-shrink: 0;
     }
 
     .brand {
@@ -62,7 +61,6 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 25px;
-        letter-spacing: -0.5px;
     }
 
     .new-chat-btn {
@@ -76,22 +74,12 @@
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+    .new-chat-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-    .new-chat-btn:hover {
-        background: var(--accent);
-        box-shadow: 0 0 15px var(--accent-glow);
-        border-color: var(--accent);
-    }
-
-    .search-box {
-        margin-top: 20px;
-        margin-bottom: 10px;
-        position: relative;
-    }
-
+    .search-box { margin-top: 20px; margin-bottom: 10px; }
     .search-input {
         width: 100%;
         background: rgba(0,0,0,0.2);
@@ -100,19 +88,14 @@
         border-radius: 8px;
         color: white;
         font-size: 14px;
-        transition: border-color 0.3s;
     }
     .search-input:focus { border-color: var(--accent); }
 
-    .history-list {
-        flex: 1;
-        overflow-y: auto;
-        margin-top: 10px;
-        padding-right: 5px;
-    }
+    .history-list { flex: 1; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
 
+    /* Updated Chat Item Styles */
     .chat-item {
-        padding: 12px;
+        padding: 10px 12px;
         margin-bottom: 8px;
         border-radius: 8px;
         cursor: pointer;
@@ -123,7 +106,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: transparent;
+        position: relative;
     }
 
     .chat-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
@@ -133,25 +116,39 @@
         color: #fff;
     }
 
-    .delete-btn {
+    .chat-title-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .chat-actions {
+        display: flex;
+        gap: 5px;
         opacity: 0;
-        background: none;
-        border: none;
-        color: #ef4444;
-        cursor: pointer;
-        font-size: 16px;
         transition: opacity 0.2s;
     }
-    .chat-item:hover .delete-btn { opacity: 1; }
+    
+    .chat-item:hover .chat-actions { opacity: 1; }
+
+    /* Icon Buttons (Edit/Delete) */
+    .icon-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 2px;
+        font-size: 14px;
+        border-radius: 4px;
+    }
+    .icon-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .delete-btn:hover { color: #ef4444; }
 
     /* --- Main Chat --- */
-    .chat-area {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-
+    .chat-area { flex: 1; display: flex; flex-direction: column; }
+    
     .chat-header {
         padding: 20px 30px;
         border-bottom: 1px solid var(--glass-border);
@@ -162,151 +159,49 @@
     }
 
     .model-badge {
-        font-size: 12px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: rgba(139, 92, 246, 0.2);
-        color: #d8b4fe;
+        font-size: 12px; padding: 4px 10px; border-radius: 20px;
+        background: rgba(139, 92, 246, 0.2); color: #d8b4fe;
         border: 1px solid rgba(139, 92, 246, 0.3);
     }
 
-    .messages {
-        flex: 1;
-        padding: 30px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-    }
+    .messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
 
-    .message {
-        display: flex;
-        gap: 16px;
-        max-width: 800px;
-        margin: 0 auto;
-        width: 100%;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        flex-shrink: 0;
-        font-size: 14px;
-    }
-
-    .bot-avatar { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+    .message { display: flex; gap: 16px; max-width: 800px; margin: 0 auto; width: 100%; }
+    .avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 14px; }
+    .bot-avatar { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
     .user-avatar { background: #334155; color: #94a3b8; }
 
-    .msg-content {
-        flex: 1;
-        line-height: 1.6;
-        font-size: 15px;
-        color: #e2e8f0;
-    }
-
-    .msg-content p { margin-top: 0; }
+    .msg-content { flex: 1; line-height: 1.6; font-size: 15px; color: #e2e8f0; }
     
-    /* Code Block Styling */
-    pre {
-        background: #0f172a;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid var(--glass-border);
-        overflow-x: auto;
-        font-family: 'Fira Code', monospace;
-        font-size: 13px;
-    }
-    code {
-        background: rgba(255,255,255,0.1);
-        padding: 2px 5px;
-        border-radius: 4px;
-        font-family: monospace;
-        font-size: 0.9em;
-    }
+    pre { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid var(--glass-border); overflow-x: auto; }
+    code { background: rgba(255,255,255,0.1); padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
     pre code { background: none; padding: 0; }
 
-    /* --- Input Area --- */
-    .input-container {
-        padding: 30px;
-        background: linear-gradient(to top, rgba(15, 23, 42, 0.9), transparent);
-    }
-
+    .input-container { padding: 30px; background: linear-gradient(to top, rgba(15, 23, 42, 0.9), transparent); }
     .input-box {
-        max-width: 800px;
-        margin: 0 auto;
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 8px 15px;
-        display: flex;
-        align-items: flex-end;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        backdrop-filter: blur(10px);
+        max-width: 800px; margin: 0 auto; background: rgba(30, 41, 59, 0.7);
+        border: 1px solid var(--glass-border); border-radius: 16px; padding: 8px 15px;
+        display: flex; align-items: flex-end; backdrop-filter: blur(10px);
         transition: border-color 0.2s, box-shadow 0.2s;
     }
+    .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 20px rgba(139, 92, 246, 0.15); }
 
-    .input-box:focus-within {
-        border-color: var(--accent);
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
-    }
+    textarea { flex: 1; background: transparent; border: none; color: white; padding: 12px; resize: none; max-height: 150px; height: 48px; font-family: inherit; font-size: 15px; }
+    .send-btn { background: var(--accent); color: white; border: none; width: 36px; height: 36px; border-radius: 10px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-    textarea {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: white;
-        padding: 12px;
-        resize: none;
-        max-height: 150px;
-        height: 48px;
-        font-family: inherit;
-        font-size: 15px;
-    }
-
-    .send-btn {
-        background: var(--accent);
-        color: white;
-        border: none;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        margin-bottom: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.2s;
-    }
-
-    .send-btn:hover { transform: scale(1.05); }
-    .send-btn:active { transform: scale(0.95); }
-
-    /* Scrollbars */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-    /* Mobile */
     .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-
     @media (max-width: 768px) {
         .sidebar { position: absolute; height: 100%; transform: translateX(-100%); background: #0f172a; width: 80%; }
         .sidebar.open { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
         .menu-toggle { display: block; }
     }
-
+    
     .welcome { text-align: center; margin-top: 10vh; color: var(--text-muted); }
-    .welcome h1 { font-size: 2.5rem; color: white; margin-bottom: 10px; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
+    .welcome h1 { font-size: 2.5rem; color: white; margin-bottom: 10px; }
     .typing::after { content: '●'; animation: blink 1s infinite; margin-left: 5px; color: var(--accent); }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 </style>
@@ -322,22 +217,20 @@
         </button>
 
         <div class="search-box">
-            <input type="text" class="search-input" placeholder="Search history..." onkeyup="filterChats(this.value)">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search history..." onkeyup="renderSidebar()">
         </div>
 
-        <div class="history-list" id="historyList">
-            </div>
+        <div class="history-list" id="historyList"></div>
     </div>
 
     <div class="chat-area">
         <div class="chat-header">
             <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <span style="font-weight: 600;">Gemini Free</span>
-            <span class="model-badge" id="modelName">Auto-Detecting...</span>
+            <span style="font-weight: 600;">Gemini AI</span>
+            <span class="model-badge" id="modelName">Initializing...</span>
         </div>
 
-        <div class="messages" id="messages">
-            </div>
+        <div class="messages" id="messages"></div>
 
         <div class="input-container">
             <div class="input-box">
@@ -352,7 +245,7 @@
 
 <script>
     /* --- CONFIGURATION --- */
-    const API_KEY = "AIzaSyBIBkDzkSj8U8ZZ8C-LDk6qelJE4qukoiY"; 
+    const API_KEY = "AIzaSyBIBkDzkSj8U8ZZ8C-LDk6qelJE4qukoiY"; // Replace with your key
     const BASE_URL = "https://generativelanguage.googleapis.com/v1/models";
 
     /* --- STATE --- */
@@ -371,46 +264,25 @@
     }
 
     async function findModel() {
-    try {
-        const req = await fetch(`${BASE_URL}?key=${API_KEY}`);
-        const res = await req.json();
-
-        const models = res.models || [];
-
-        // Only models that support chat
-        const chatModels = models.filter(m =>
-            m.supportedGenerationMethods?.includes("generateContent")
-        );
-
-        const preferredOrder = [
-            "models/gemini-2.5-flash",
-            "models/gemini-2.5-pro",
-            "models/gemini-2.5-flash-lite",
-            "models/gemini-2.0-flash"
-        ];
-
-        const selected =
-            preferredOrder.find(p =>
-                chatModels.some(m => m.name === p)
-            ) || chatModels[0]?.name;
-
-        if (!selected) throw new Error("No supported Gemini model found");
-
-        const modelName = selected.replace("models/", "");
-        state.modelEndpoint =
-            `${BASE_URL}/${modelName}:generateContent?key=${API_KEY}`;
-
-        document.getElementById("modelName").textContent = modelName;
-        console.log("✅ Using model:", modelName);
-
-    } catch (e) {
-        console.error(e);
-        document.getElementById("modelName").textContent = "Model Error";
-        alert("Failed to load Gemini model. Check console.");
+        try {
+            const req = await fetch(`${BASE_URL}?key=${API_KEY}`);
+            const res = await req.json();
+            const models = res.models || [];
+            
+            // Prefer newer/faster models
+            const preferred = ["models/gemini-2.0-flash-exp", "models/gemini-1.5-flash", "models/gemini-1.5-pro"];
+            const selected = preferred.find(p => models.some(m => m.name === p)) || models[0]?.name || "gemini-pro";
+            
+            const modelName = selected.replace("models/", "");
+            state.modelEndpoint = `${BASE_URL}/${modelName}:generateContent?key=${API_KEY}`;
+            document.getElementById("modelName").textContent = modelName;
+        } catch (e) {
+            console.error(e);
+            document.getElementById("modelName").textContent = "Offline";
+        }
     }
-}
 
-    /* --- LOGIC --- */
+    /* --- CHAT LOGIC --- */
     function createNewChat() {
         const id = Date.now().toString();
         const chat = { id, title: "New Conversation", msgs: [], time: Date.now() };
@@ -419,12 +291,12 @@
         save();
         renderSidebar();
         renderMessages();
-        toggleSidebar(false); // Close on mobile
+        toggleSidebar(false);
     }
 
     function loadChat(id) {
         state.activeChatId = id;
-        renderSidebar();
+        renderSidebar(); // Update active highlight
         renderMessages();
         toggleSidebar(false);
     }
@@ -438,77 +310,54 @@
         else { save(); renderSidebar(); }
     }
 
-    /* --- MESSAGING --- */
-    async function sendMessage() {
-        const input = document.getElementById('userInput');
-        const text = input.value.trim();
-        if(!text) return;
-
-        input.value = "";
+    function renameChat(e, id) {
+        e.stopPropagation();
+        const chat = state.chats.find(c => c.id === id);
+        if (!chat) return;
         
-        // 1. Update UI (User)
-        const chat = state.chats.find(c => c.id === state.activeChatId);
-        chat.msgs.push({ role: "user", text });
-        
-        // Update title if first message
-        if(chat.msgs.length === 1) {
-            chat.title = text.length > 25 ? text.substring(0, 25) + "..." : text;
-            renderSidebar();
-        }
-
-        renderMessages();
-
-        // 2. Loading State
-        const loadingId = "load-" + Date.now();
-        appendMessageUI("model", "", true, loadingId);
-        
-        // 3. API Call
-        try {
-            const history = chat.msgs.map(m => ({
-                role: m.role === "user" ? "user" : "model",
-                parts: [{ text: m.text }]
-            }));
-
-            const req = await fetch(state.modelEndpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: history })
-            });
-            
-            const res = await req.json();
-            const reply = res.candidates?.[0]?.content?.parts?.[0]?.text || "Error: No response.";
-
-            // 4. Update UI (Bot)
-            chat.msgs.push({ role: "model", text: reply });
+        const newTitle = prompt("Rename chat:", chat.title);
+        if (newTitle && newTitle.trim() !== "") {
+            chat.title = newTitle.trim();
             save();
-            renderMessages();
-
-        } catch (err) {
-            document.getElementById(loadingId).innerText = "Error connecting to AI.";
+            renderSidebar();
         }
     }
 
     /* --- RENDERING --- */
     function renderSidebar() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
         const list = document.getElementById('historyList');
         list.innerHTML = "";
-        state.chats.forEach(c => {
+
+        // Filter based on search
+        let displayChats = state.chats.filter(c => c.title.toLowerCase().includes(query));
+
+        // Sort: Prioritize exact starts-with matches for the "Search first" requirement
+        if (query) {
+            displayChats.sort((a, b) => {
+                const titleA = a.title.toLowerCase();
+                const titleB = b.title.toLowerCase();
+                const aStarts = titleA.startsWith(query);
+                const bStarts = titleB.startsWith(query);
+                
+                if (aStarts && !bStarts) return -1; // A comes first
+                if (!aStarts && bStarts) return 1;  // B comes first
+                return 0; // Maintain original order
+            });
+        }
+
+        displayChats.forEach(c => {
             const div = document.createElement('div');
             div.className = `chat-item ${c.id === state.activeChatId ? 'active' : ''}`;
             div.onclick = () => loadChat(c.id);
-            div.dataset.title = c.title.toLowerCase(); // For search
             div.innerHTML = `
-                <span>${c.title}</span>
-                <button class="delete-btn" onclick="deleteChat(event, '${c.id}')">×</button>
+                <span class="chat-title-text">${c.title}</span>
+                <div class="chat-actions">
+                    <button class="icon-btn" onclick="renameChat(event, '${c.id}')" title="Rename">✎</button>
+                    <button class="icon-btn delete-btn" onclick="deleteChat(event, '${c.id}')" title="Delete">×</button>
+                </div>
             `;
             list.appendChild(div);
-        });
-    }
-
-    function filterChats(query) {
-        const items = document.querySelectorAll('.chat-item');
-        items.forEach(el => {
-            el.style.display = el.dataset.title.includes(query.toLowerCase()) ? 'flex' : 'none';
         });
     }
 
@@ -517,13 +366,8 @@
         const chat = state.chats.find(c => c.id === state.activeChatId);
         container.innerHTML = "";
 
-        if(chat.msgs.length === 0) {
-            container.innerHTML = `
-                <div class="welcome">
-                <h1>Gemini AI</h1>
-<p>What’s on your mind? Ask anything, get instant answers.</p>
-
-                </div>`;
+        if(!chat || chat.msgs.length === 0) {
+            container.innerHTML = `<div class="welcome"><h1>Gemini AI</h1><p>What can I help you explore today?</p></div>`;
             return;
         }
 
@@ -535,55 +379,64 @@
         const container = document.getElementById('messages');
         const div = document.createElement('div');
         div.className = "message";
+        const avatar = role === "user" ? `<div class="avatar user-avatar">You</div>` : `<div class="avatar bot-avatar">AI</div>`;
+        const content = isLoading ? `<span class="typing">Thinking</span>` : parseMarkdown(text);
         
-        const avatar = role === "user" ? 
-            `<div class="avatar user-avatar">You</div>` : 
-            `<div class="avatar bot-avatar">AI</div>`;
-
-        let contentHtml = isLoading ? 
-            `<span class="typing">Thinking</span>` : 
-            parseMarkdown(text);
-
-        div.innerHTML = `
-            ${avatar}
-            <div class="msg-content" ${id ? `id="${id}"` : ''}>${contentHtml}</div>
-        `;
+        div.innerHTML = `${avatar}<div class="msg-content" ${id ? `id="${id}"` : ''}>${content}</div>`;
         container.appendChild(div);
         scrollToBottom();
     }
 
-    /* --- UTILS --- */
-    function parseMarkdown(text) {
-        // Simple safe markdown parser
-        let html = text
-            .replace(/</g, "&lt;") // Escape HTML
-            .replace(/>/g, "&gt;")
-            // Code Blocks
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-            // Inline Code
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
-            // Bold
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            // Line breaks
-            .replace(/\n/g, '<br>');
-        return html;
-    }
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if(!text) return;
+        
+        input.value = "";
+        
+        const chat = state.chats.find(c => c.id === state.activeChatId);
+        chat.msgs.push({ role: "user", text });
+        
+        // Auto-title first message
+        if(chat.msgs.length === 1) {
+            chat.title = text.length > 25 ? text.substring(0, 25) + "..." : text;
+            renderSidebar();
+        }
+        renderMessages();
 
-    function handleKey(e) {
-        if(e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+        const loadingId = "load-" + Date.now();
+        appendMessageUI("model", "", true, loadingId);
+
+        try {
+            const history = chat.msgs.map(m => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+            const res = await fetch(state.modelEndpoint, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: history })
+            });
+            const data = await res.json();
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
+            
+            chat.msgs.push({ role: "model", text: reply });
+            save();
+            renderMessages();
+        } catch (e) {
+            document.getElementById(loadingId).innerText = "Connection Error";
         }
     }
 
-    function save() { localStorage.setItem('glass_chats', JSON.stringify(state.chats)); }
-    function scrollToBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
-    function toggleSidebar(force) { 
-        const sb = document.getElementById('sidebar');
-        sb.classList.toggle('open', force); 
+    function parseMarkdown(text) {
+        return text.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
     }
 
-    // Start
+    function handleKey(e) { if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+    function save() { localStorage.setItem('glass_chats', JSON.stringify(state.chats)); }
+    function scrollToBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+    function toggleSidebar(force) { document.getElementById('sidebar').classList.toggle('open', force); }
+
     init();
 </script>
 </body>
