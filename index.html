@@ -92,7 +92,6 @@
         border: 1px solid var(--glass-border); border-radius: 20px;
         padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
-    /* BRAND HEADING ADDED HERE */
     .auth-brand {
         text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 25px;
         background: linear-gradient(to right, #fff, #9ca3af);
@@ -337,7 +336,8 @@
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
     RecaptchaVerifier,
-    signInWithPhoneNumber 
+    signInWithPhoneNumber,
+    updateProfile 
   } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
@@ -379,7 +379,7 @@
           if (user) {
               document.getElementById('authOverlay').classList.remove('visible');
               updateProfileUI(user);
-              await fetchApiKey(); // Fetch key FIRST
+              await fetchApiKey(); 
               await loadUserData(user.uid);
           } else {
               document.getElementById('authOverlay').classList.add('visible');
@@ -397,7 +397,7 @@
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
               state.apiKey = docSnap.data().gemini_key;
-              await findModel(); // Now find model with valid key
+              await findModel(); 
           } else {
               console.error("No API Config Found in DB!");
               Swal.fire({
@@ -461,14 +461,36 @@
       document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
   };
 
-  window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); } catch (err) { showError('loginStatus', err.message); } };
+  window.loginWithGoogle = async () => { 
+      try { 
+          const result = await signInWithPopup(auth, googleProvider);
+          const user = result.user;
+          // SAVE GOOGLE USER DATA
+          await setDoc(doc(db, "users", user.uid), { 
+              uid: user.uid, 
+              name: user.displayName, 
+              email: user.email, 
+              photo: user.photoURL,
+              createdAt: new Date(),
+              authProvider: "google"
+          }, { merge: true });
+          
+      } catch (err) { showError('loginStatus', err.message); } 
+  };
+
   window.handleEmailLogin = async () => {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
-      try { await signInWithEmailAndPassword(auth, email, pass); } catch (err) { showError('loginStatus', "Invalid email or password"); }
+      try { 
+          Swal.fire({ title: 'Logging in...', showConfirmButton: false, didOpen: () => Swal.showLoading(), background: '#1f2937', color: '#fff', heightAuto: false });
+          await signInWithEmailAndPassword(auth, email, pass);
+          Swal.close();
+      } catch (err) { 
+          Swal.close();
+          showError('loginStatus', "Invalid email or password"); 
+      }
   };
   
-  // FIX: Forgot Password with feedback and error handling
   window.handleForgotPassword = async () => {
       const email = document.getElementById('loginEmail').value;
       if (!email) {
@@ -483,6 +505,7 @@
           return;
       }
       try { 
+          Swal.fire({ title: 'Sending...', showConfirmButton: false, didOpen: () => Swal.showLoading(), background: '#1f2937', color: '#fff', heightAuto: false });
           await sendPasswordResetEmail(auth, email); 
           Swal.fire({ 
               title:'Sent!', 
@@ -500,12 +523,10 @@
 
   window.setupRecaptcha = () => { if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' }); };
   
-  // FIX: Phone Verification with Loading State
   window.sendOtp = async () => {
       const phone = document.getElementById('signupPhone').value;
       if(phone.length < 10) return showError('signupStatus', "Invalid Phone");
       
-      // SHOW LOADING
       Swal.fire({
           title: 'Sending OTP...',
           text: 'Please wait a moment',
@@ -524,7 +545,7 @@
           document.getElementById('otpSection').classList.add('visible');
           document.getElementById('sendOtpBtn').innerText = "Resend";
           
-          Swal.close(); // Close loading
+          Swal.close();
           Swal.fire({ position: 'top-end', icon: 'success', title: 'OTP Sent', showConfirmButton: false, timer: 1500, background: '#1f2937', color: '#fff', heightAuto: false });
       } catch (err) { 
           Swal.close();
@@ -545,15 +566,44 @@
 
   window.handleSignup = async () => {
       if(!state.isPhoneVerified) return Swal.fire({ title: 'Wait!', text: 'Verify phone first.', icon: 'warning', heightAuto: false, background: '#1f2937', color: '#fff' });
+      
       const email = document.getElementById('signupEmail').value;
       const pass = document.getElementById('signupPass').value;
       const name = document.getElementById('signupName').value;
       const phone = document.getElementById('signupPhone').value;
+
+      Swal.fire({
+          title: 'Creating Account...',
+          didOpen: () => Swal.showLoading(),
+          background: '#1f2937',
+          color: '#fff',
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          heightAuto: false
+      });
+
       try {
           const userCred = await createUserWithEmailAndPassword(auth, email, pass);
           const user = userCred.user;
-          await setDoc(doc(db, "users", user.uid), { uid: user.uid, name, email, phone, createdAt: new Date(), chats: [] });
-      } catch (err) { showError('signupStatus', err.message); }
+          
+          // 1. UPDATE AUTH PROFILE (Immediate display name fix)
+          await updateProfile(user, { displayName: name });
+
+          // 2. SAVE TO FIRESTORE
+          await setDoc(doc(db, "users", user.uid), { 
+              uid: user.uid, 
+              name: name, 
+              email: email, 
+              phone: phone, 
+              createdAt: new Date(), 
+              chats: [] 
+          });
+          
+          Swal.close();
+      } catch (err) { 
+          Swal.close();
+          showError('signupStatus', err.message); 
+      }
   };
 
   window.logout = () => {
@@ -563,10 +613,16 @@
   };
 
   function showError(id, msg) { const el = document.getElementById(id); el.innerText = msg; el.className = "status-msg status-error"; }
+  
   function updateProfileUI(user) {
-      document.getElementById('uiName').innerText = user.displayName || "User";
-      document.getElementById('uiEmail').innerText = user.email;
-      if(user.photoURL) document.getElementById('uiAvatar').src = user.photoURL;
+      const nameEl = document.getElementById('uiName');
+      const emailEl = document.getElementById('uiEmail');
+      const avatarEl = document.getElementById('uiAvatar');
+      
+      // Fallback if displayName is null (e.g. older accounts)
+      if(nameEl) nameEl.innerText = user.displayName || "User";
+      if(emailEl) emailEl.innerText = user.email;
+      if(avatarEl && user.photoURL) avatarEl.src = user.photoURL;
   }
 
   // --- DATA SYNC ---
