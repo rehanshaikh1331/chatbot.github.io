@@ -9,8 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
-<link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     :root {
@@ -93,14 +92,12 @@
         border: 1px solid var(--glass-border); border-radius: 20px;
         padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
+    /* BRAND HEADING ADDED HERE */
     .auth-brand {
         text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 25px;
         background: linear-gradient(to right, #fff, #9ca3af);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    #swal2-html-container {
-	text-align: center;
-}
     .auth-tabs { display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 20px; }
     .auth-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: var(--text-muted); font-weight: 600; }
     .auth-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
@@ -230,7 +227,8 @@
 
 <div class="auth-overlay" id="authOverlay">
     <div class="auth-card">
-        <div class="auth-brand">Student Nexus</div> <div class="auth-tabs">
+        <div class="auth-brand">Student Nexus</div>
+        <div class="auth-tabs">
             <div class="auth-tab active" onclick="switchTab('login')">Login</div>
             <div class="auth-tab" onclick="switchTab('signup')">Sign Up</div>
         </div>
@@ -469,25 +467,71 @@
       const pass = document.getElementById('loginPass').value;
       try { await signInWithEmailAndPassword(auth, email, pass); } catch (err) { showError('loginStatus', "Invalid email or password"); }
   };
+  
+  // FIX: Forgot Password with feedback and error handling
   window.handleForgotPassword = async () => {
       const email = document.getElementById('loginEmail').value;
-      if (!email) return Swal.fire({ title:'Error', text:'Please enter your email.', icon:'error', heightAuto: false });
-      try { await sendPasswordResetEmail(auth, email); Swal.fire({ title:'Sent!', text:'Reset email sent!', icon:'success', heightAuto: false }); } catch (err) { Swal.fire({ title:'Error', text:err.message, icon:'error', heightAuto: false }); }
+      if (!email) {
+          Swal.fire({ 
+              title:'Wait!', 
+              text:'Please enter your email address in the box above first.', 
+              icon:'warning', 
+              heightAuto: false,
+              background: '#1f2937', 
+              color: '#fff'
+          });
+          return;
+      }
+      try { 
+          await sendPasswordResetEmail(auth, email); 
+          Swal.fire({ 
+              title:'Sent!', 
+              text:'Password reset email sent!', 
+              icon:'success', 
+              heightAuto: false,
+              background: '#1f2937', 
+              color: '#fff'
+          }); 
+      } 
+      catch (err) { 
+          Swal.fire({ title:'Error', text:err.message, icon:'error', heightAuto: false, background: '#1f2937', color: '#fff' }); 
+      }
   };
 
   window.setupRecaptcha = () => { if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' }); };
+  
+  // FIX: Phone Verification with Loading State
   window.sendOtp = async () => {
       const phone = document.getElementById('signupPhone').value;
       if(phone.length < 10) return showError('signupStatus', "Invalid Phone");
+      
+      // SHOW LOADING
+      Swal.fire({
+          title: 'Sending OTP...',
+          text: 'Please wait a moment',
+          didOpen: () => Swal.showLoading(),
+          background: '#1f2937',
+          color: '#fff',
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          heightAuto: false
+      });
+
       setupRecaptcha();
       try {
           const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
           state.confirmationResult = confirmation;
           document.getElementById('otpSection').classList.add('visible');
           document.getElementById('sendOtpBtn').innerText = "Resend";
+          
+          Swal.close(); // Close loading
           Swal.fire({ position: 'top-end', icon: 'success', title: 'OTP Sent', showConfirmButton: false, timer: 1500, background: '#1f2937', color: '#fff', heightAuto: false });
-      } catch (err) { showError('signupStatus', "SMS Error: " + err.message); }
+      } catch (err) { 
+          Swal.close();
+          showError('signupStatus', "SMS Error: " + err.message); 
+      }
   };
+
   window.verifyOtp = async () => {
       const code = document.getElementById('otpInput').value;
       try {
@@ -498,8 +542,9 @@
           Swal.fire({ title: 'Verified!', text: 'Click Create Account.', icon: 'success', background: '#1f2937', color: '#fff', heightAuto: false });
       } catch (err) { showError('signupStatus', "Invalid Code"); }
   };
+
   window.handleSignup = async () => {
-      if(!state.isPhoneVerified) return Swal.fire({ title: 'Wait!', text: 'Verify phone first.', icon: 'warning', heightAuto: false });
+      if(!state.isPhoneVerified) return Swal.fire({ title: 'Wait!', text: 'Verify phone first.', icon: 'warning', heightAuto: false, background: '#1f2937', color: '#fff' });
       const email = document.getElementById('signupEmail').value;
       const pass = document.getElementById('signupPass').value;
       const name = document.getElementById('signupName').value;
@@ -513,7 +558,7 @@
 
   window.logout = () => {
       Swal.fire({
-          title: 'Logout?', text: "Are you sure?", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Logout', heightAuto: false
+          title: 'Logout?', text: "Are you sure?", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Logout', heightAuto: false, background: '#1f2937', color: '#fff'
       }).then((result) => { if (result.isConfirmed) signOut(auth); });
   };
 
@@ -543,13 +588,13 @@
   // --- CHAT ACTIONS ---
   window.deleteChat = (e, id) => {
       e.stopPropagation(); 
-      Swal.fire({ title: 'Delete Chat?', text: "Can't revert this!", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete!', heightAuto: false })
+      Swal.fire({ title: 'Delete Chat?', text: "Can't revert this!", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete!', heightAuto: false, background: '#1f2937', color: '#fff' })
       .then((result) => {
           if (result.isConfirmed) {
               state.chats = state.chats.filter(c => c.id !== id);
               if (id === state.activeChatId) { state.chats.length > 0 ? state.activeChatId = state.chats[0].id : window.createNewChat(); return; }
               saveToCloud(); renderSidebar(); renderMessages();
-              Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1000, showConfirmButton: false, heightAuto: false });
+              Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1000, showConfirmButton: false, heightAuto: false, background: '#1f2937', color: '#fff' });
           }
       })
   };
@@ -557,7 +602,7 @@
       e.stopPropagation();
       const chat = state.chats.find(c => c.id === id);
       if (!chat) return;
-      const { value: newTitle } = await Swal.fire({ title: 'Rename', input: 'text', inputValue: chat.title, showCancelButton: true, heightAuto: false });
+      const { value: newTitle } = await Swal.fire({ title: 'Rename', input: 'text', inputValue: chat.title, showCancelButton: true, heightAuto: false, background: '#1f2937', color: '#fff' });
       if (newTitle) { chat.title = newTitle.trim(); saveToCloud(); renderSidebar(); }
   };
   window.createNewChat = () => {
@@ -617,8 +662,7 @@
       const chat = state.chats.find(c => c.id === state.activeChatId);
       if (!chat || chat.msgs.length === 0) {
           const firstName = state.user?.displayName?.split(' ')[0] || "Student";
-          container.innerHTML = `<div class="welcome-screen">  <h1>How can I help you, ${firstName}?</h1>
-                <p>I can help you write code, plan projects, or answer questions.</p></div>`;
+          container.innerHTML = `<div class="welcome-screen"><h1>Hello, ${firstName}</h1><p>What are we learning today?</p></div>`;
           return;
       }
       chat.msgs.forEach(m => appendMessageUI(m.role, m.text));
