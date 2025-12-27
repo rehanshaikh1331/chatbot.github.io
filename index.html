@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Workspace - Secure Login</title>
+<title>Student Nexus - Secure Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
 <style>
     :root {
-        --glass-bg: rgba(15, 23, 42, 0.85); /* Darker, richer */
+        --glass-bg: rgba(15, 23, 42, 0.85);
         --glass-border: rgba(255, 255, 255, 0.1);
         --glass-highlight: rgba(255, 255, 255, 0.05);
         --accent: #8b5cf6;
@@ -28,9 +29,8 @@
 
     * { box-sizing: border-box; outline: none; }
 
-    /* --- SWEETALERT THEME OVERRIDES (Match App UI) --- */
+    /* SWEETALERT OVERRIDES */
     body.swal2-shown { padding-right: 0 !important; height: 100vh !important; overflow: hidden !important; }
-    
     div:where(.swal2-container) div:where(.swal2-popup) {
         background: rgba(30, 41, 59, 0.95) !important;
         backdrop-filter: blur(20px) !important;
@@ -42,18 +42,11 @@
     div:where(.swal2-icon).swal2-warning { border-color: #f59e0b !important; color: #f59e0b !important; }
     div:where(.swal2-icon).swal2-error { border-color: var(--error) !important; color: var(--error) !important; }
     div:where(.swal2-icon).swal2-success { border-color: var(--success) !important; color: var(--success) !important; }
-    
-    button.swal2-confirm {
-        background-color: var(--accent) !important;
-        box-shadow: 0 0 15px var(--accent-glow) !important; 
-    }
-    button.swal2-cancel {
-        background-color: #374151 !important; 
-    }
+    button.swal2-confirm { background-color: var(--accent) !important; box-shadow: 0 0 15px var(--accent-glow) !important; }
+    button.swal2-cancel { background-color: #374151 !important; }
     .swal2-title, .swal2-html-container { color: var(--text-main) !important; font-family: 'Outfit', sans-serif !important; }
     .swal2-input { color: white !important; }
 
-    /* --- MAIN UI --- */
     body {
         margin: 0;
         font-family: 'Outfit', sans-serif;
@@ -68,7 +61,6 @@
         display: flex;
     }
 
-    /* --- INITIAL LOADING SCREEN --- */
     #initial-loader {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #0f172a; z-index: 10000;
@@ -86,142 +78,80 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .loader-text { color: var(--text-muted); font-size: 14px; letter-spacing: 1px; }
 
-    /* --- AUTH OVERLAY --- */
+    /* AUTH */
     .auth-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(15px);
         z-index: 9999;
-        display: none; 
-        align-items: center; justify-content: center;
+        display: none; align-items: center; justify-content: center;
         transition: opacity 0.5s ease;
     }
     .auth-overlay.visible { display: flex; }
-
     .auth-card {
-        width: 400px;
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        position: relative;
-        overflow: hidden;
+        width: 400px; background: rgba(30, 41, 59, 0.6);
+        border: 1px solid var(--glass-border); border-radius: 20px;
+        padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
-
+    .auth-brand {
+        text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 25px;
+        background: linear-gradient(to right, #fff, #9ca3af);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    #swal2-html-container {
+	text-align: center;
+}
     .auth-tabs { display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 20px; }
-    .auth-tab {
-        flex: 1; padding: 15px; text-align: center; cursor: pointer;
-        color: var(--text-muted); transition: 0.3s; font-weight: 600;
-    }
+    .auth-tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: var(--text-muted); font-weight: 600; }
     .auth-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-
     .form-group { margin-bottom: 15px; }
-    .form-input {
-        width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-        padding: 12px; border-radius: 8px; color: white; font-family: 'Outfit', sans-serif;
-    }
+    .form-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 12px; border-radius: 8px; color: white; font-family: 'Outfit', sans-serif; }
     .form-input:focus { border-color: var(--accent); }
-
-    .btn-primary {
-        width: 100%; background: var(--accent); color: white; border: none;
-        padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        transition: 0.2s; margin-top: 10px;
-    }
-    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 15px var(--accent-glow); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .btn-google {
-        width: 100%; background: white; color: #333; border: none;
-        padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        margin-top: 15px; transition: 0.2s;
-    }
-    .btn-google:hover { background: #f1f5f9; }
-
+    .btn-primary { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-google { width: 100%; background: white; color: #333; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; }
     .link-text { color: var(--text-muted); font-size: 13px; text-align: center; margin-top: 15px; cursor: pointer; }
-    .link-text:hover { color: white; }
-
     .otp-section { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--glass-border); }
     .otp-section.visible { display: block; }
-    
     .status-msg { font-size: 12px; margin-top: 5px; text-align: center; min-height: 18px; }
     .status-error { color: var(--error); }
     .status-success { color: var(--success); }
 
-    /* --- SPOTLIGHT SEARCH OVERLAY --- */
+    /* SEARCH OVERLAY */
     .search-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(15, 23, 42, 0.8);
-        backdrop-filter: blur(5px);
-        z-index: 5000;
-        display: none; /* Hidden by default */
-        align-items: flex-start; justify-content: center;
-        padding-top: 100px;
-        animation: fadeIn 0.2s ease-out;
+        background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px);
+        z-index: 5000; display: none; align-items: flex-start; justify-content: center;
+        padding-top: 100px; animation: fadeIn 0.2s ease-out;
     }
     .search-overlay.visible { display: flex; }
-    
     .search-modal {
-        width: 600px; max-width: 90%;
-        background: rgba(30, 41, 59, 0.95);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
+        width: 600px; max-width: 90%; background: rgba(30, 41, 59, 0.95);
+        border: 1px solid var(--glass-border); border-radius: 16px;
         box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        display: flex; flex-direction: column;
-        overflow: hidden;
+        display: flex; flex-direction: column; overflow: hidden;
     }
-    .search-bar-wrapper {
-        display: flex; align-items: center; padding: 15px 20px;
-        border-bottom: 1px solid var(--glass-border);
-    }
+    .search-bar-wrapper { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--glass-border); }
     .search-icon-lg { color: var(--text-muted); margin-right: 15px; }
-    .spotlight-input {
-        flex: 1; background: transparent; border: none; color: white;
-        font-size: 18px; font-family: 'Outfit', sans-serif;
-    }
-    .search-results {
-        max-height: 400px; overflow-y: auto; padding: 10px;
-    }
-    .search-result-item {
-        padding: 12px 15px; border-radius: 8px; cursor: pointer;
-        display: flex; align-items: center; justify-content: space-between;
-        color: var(--text-muted); transition: 0.2s;
-    }
+    .spotlight-input { flex: 1; background: transparent; border: none; color: white; font-size: 18px; font-family: 'Outfit', sans-serif; }
+    .search-results { max-height: 400px; overflow-y: auto; padding: 10px; }
+    .search-result-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: var(--text-muted); transition: 0.2s; }
     .search-result-item:hover { background: rgba(139, 92, 246, 0.1); color: white; }
     .search-match-text { color: white; font-weight: 500; }
     .search-date { font-size: 12px; opacity: 0.6; }
     .no-results { padding: 20px; text-align: center; color: var(--text-muted); font-size: 14px; }
 
-    /* --- Sidebar & Chat --- */
-    .sidebar {
-        width: 280px;
-        background: var(--glass-bg);
-        border-right: 1px solid var(--glass-border);
-        display: flex; flex-direction: column; padding: 20px;
-        transition: all 0.3s; z-index: 50; flex-shrink: 0; backdrop-filter: blur(20px);
-    }
+    /* LAYOUT */
+    .sidebar { width: 280px; background: var(--glass-bg); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 20px; transition: all 0.3s; z-index: 50; flex-shrink: 0; backdrop-filter: blur(20px); }
     .sidebar.collapsed { width: 80px; padding: 20px 10px; align-items: center; }
-    .sidebar.collapsed .brand span:first-child, 
-    .sidebar.collapsed .chat-title-text, 
-    .sidebar.collapsed .chat-actions, 
-    .sidebar.collapsed .btn-text, 
-    .sidebar.collapsed .user-info-text { display: none; }
-    
+    .sidebar.collapsed .brand span:first-child, .sidebar.collapsed .chat-title-text, .sidebar.collapsed .chat-actions, .sidebar.collapsed .btn-text, .sidebar.collapsed .user-info-text { display: none; }
     .sidebar.collapsed .sidebar-actions { flex-direction: column; gap: 10px; }
     .sidebar.collapsed .sidebar-btn { width: 45px; height: 45px; padding: 0; justify-content: center; }
     
     .brand { font-size: 22px; font-weight: 700; background: linear-gradient(to right, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
     .toggle-sidebar-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
     
-    /* New Sidebar Buttons Row */
     .sidebar-actions { display: flex; gap: 10px; margin-bottom: 20px; }
-    .sidebar-btn {
-        background: var(--glass-highlight); border: 1px solid var(--glass-border);
-        color: white; padding: 10px; border-radius: 10px; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        font-weight: 500; font-family: 'Outfit', sans-serif; transition: 0.2s;
-    }
+    .sidebar-btn { background: var(--glass-highlight); border: 1px solid var(--glass-border); color: white; padding: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; font-family: 'Outfit', sans-serif; transition: 0.2s; }
     .sidebar-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
     .btn-new-chat { flex: 1; background: var(--accent); border: none; }
     .btn-new-chat:hover { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent-glow); }
@@ -235,11 +165,7 @@
     
     .chat-area { flex: 1; display: flex; flex-direction: column; background: rgba(0, 0, 0, 0.3); position: relative; }
     .chat-header { padding: 20px 30px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.5); }
-    .model-badge {
-        font-size: 12px; padding: 4px 10px; border-radius: 20px;
-        background: rgba(139, 92, 246, 0.2); color: #d8b4fe;
-        border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 500;
-    }
+    .model-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: rgba(139, 92, 246, 0.2); color: #d8b4fe; border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 500; }
 
     .messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
     .message { display: flex; gap: 12px; max-width: 850px; width: 100%; margin: 0 auto; }
@@ -255,39 +181,21 @@
     textarea { flex: 1; background: transparent; border: none; color: white; padding: 12px; resize: none; max-height: 150px; height: 48px; font-family: 'Outfit', sans-serif; font-size: 16px; }
     .send-btn { background: var(--accent); color: white; border: none; width: 36px; height: 36px; border-radius: 10px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-    /* --- SIDEBAR CHAT ITEM UPDATES --- */
     .history-list { flex: 1; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
-    .chat-item { 
-        padding: 10px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; 
-        color: var(--text-muted); font-size: 14px; display: flex; 
-        justify-content: space-between; align-items: center;
-        transition: background 0.2s;
-    }
+    .chat-item { padding: 10px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 14px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
     .chat-item:hover { background: rgba(255,255,255,0.05); color: white; }
     .chat-item.active { background: rgba(139, 92, 246, 0.15); border-left: 3px solid var(--accent); color: white; }
-    
     .chat-title-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; margin-right: 10px; }
-    
     .chat-actions { display: none; gap: 5px; }
     .chat-item:hover .chat-actions { display: flex; }
     .icon-btn { background: none; border: none; color: #9ca3af; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
     .icon-btn:hover { color: white; background: rgba(255,255,255,0.1); }
     .btn-delete:hover { color: #ef4444; }
 
-    /* --- WELCOME SCREEN --- */
-    .welcome-screen {
-        height: 100%; display: flex; flex-direction: column; 
-        align-items: center; justify-content: center; text-align: center;
-        color: var(--text-muted); animation: fadeIn 0.5s;
-    }
-    .welcome-screen h1 { 
-        font-size: 32px; color: white; margin-bottom: 10px; 
-        background: linear-gradient(to right, #8b5cf6, #d8b4fe);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
+    .welcome-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); animation: fadeIn 0.5s; }
+    .welcome-screen h1 { font-size: 32px; color: white; margin-bottom: 10px; background: linear-gradient(to right, #8b5cf6, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     #recaptcha-container { margin: 10px 0; }
-    
     pre { background: #0b101e; padding: 15px; border-radius: 8px; border: 1px solid var(--glass-border); overflow-x: auto; margin-top: 10px; }
     code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; background: rgba(255,255,255,0.1); padding: 2px 5px; border-radius: 4px; }
     pre code { background: none; padding: 0; }
@@ -322,7 +230,7 @@
 
 <div class="auth-overlay" id="authOverlay">
     <div class="auth-card">
-        <div class="auth-tabs">
+        <div class="auth-brand">Student Nexus</div> <div class="auth-tabs">
             <div class="auth-tab active" onclick="switchTab('login')">Login</div>
             <div class="auth-tab" onclick="switchTab('signup')">Sign Up</div>
         </div>
@@ -371,7 +279,7 @@
 
 <div class="sidebar" id="sidebar">
     <div class="brand">
-        <span>AI Workspace</span>
+        <span>Student Nexus</span>
         <button class="toggle-sidebar-btn" onclick="toggleDesktopSidebar()">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
@@ -389,7 +297,7 @@
     <div class="history-list" id="historyList"></div>
 
     <div class="user-profile">
-        <img id="uiAvatar" src="https://p1.hiclipart.com/preview/767/731/727/face-icon-user-user-profile-icon-design-avatar-share-icon-computer-head-png-clipart.jpg" width="35px" class="user-avatar-img">
+        <img id="uiAvatar" src="https://p7.hiclipart.com/preview/340/956/944/computer-icons-user-profile-head-ico-download-thumbnail.jpg" class="user-avatar-img">
         <div class="user-info-text">
             <div class="user-name" id="uiName">Loading...</div>
             <div class="user-email" id="uiEmail">...</div>
@@ -459,21 +367,21 @@
       isCollapsed: false,
       confirmationResult: null,
       isPhoneVerified: false,
-      modelEndpoint: ""
+      modelEndpoint: "",
+      apiKey: "" // API Key will be fetched from DB
   };
 
-  const API_KEY = "AIzaSyDItS7ghvdHsXmsWELuEMauVZ-KgpRxmPk"; 
   const BASE_URL = "https://generativelanguage.googleapis.com/v1/models";
 
   // --- INITIALIZATION ---
   window.onload = async () => {
-      await findModel();
       onAuthStateChanged(auth, async (user) => {
           document.getElementById('initial-loader').style.display = 'none';
           state.user = user;
           if (user) {
               document.getElementById('authOverlay').classList.remove('visible');
               updateProfileUI(user);
+              await fetchApiKey(); // Fetch key FIRST
               await loadUserData(user.uid);
           } else {
               document.getElementById('authOverlay').classList.add('visible');
@@ -484,73 +392,70 @@
       });
   };
 
-  // --- SEARCH FUNCTIONALITY (SPOTLIGHT) ---
-  window.openSearch = () => {
-      document.getElementById('searchOverlay').classList.add('visible');
-      setTimeout(() => document.getElementById('spotlightInput').focus(), 100);
-  };
-
-  window.closeSearch = (e) => {
-      if (!e || e.target.id === 'searchOverlay') {
-          document.getElementById('searchOverlay').classList.remove('visible');
+  // --- SECURITY: FETCH KEY FROM DB ---
+  async function fetchApiKey() {
+      try {
+          const docRef = doc(db, "settings", "config");
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+              state.apiKey = docSnap.data().gemini_key;
+              await findModel(); // Now find model with valid key
+          } else {
+              console.error("No API Config Found in DB!");
+              Swal.fire({
+                  title: "System Error", 
+                  text: "API Configuration missing in Database. Contact Admin.", 
+                  icon: "error",
+                  heightAuto: false
+              });
+          }
+      } catch (e) {
+          console.error("Error fetching API Key:", e);
       }
-  };
+  }
 
-  // Close on ESC key
-  document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') document.getElementById('searchOverlay').classList.remove('visible');
-  });
+  // --- MODEL SELECTION ---
+  async function findModel() {
+      if(!state.apiKey) return;
+      try {
+          const req = await fetch(`${BASE_URL}?key=${state.apiKey}`);
+          const res = await req.json();
+          const availableModels = res.models || [];
+          const preferred = ["models/gemini-2.0-flash", "models/gemini-2.0-flash-lite", "models/gemini-1.5-pro"];
+          const selected = preferred.find(p => availableModels.some(m => m.name === p)) || availableModels[0]?.name || "gemini-pro";
+          state.modelEndpoint = `${BASE_URL}/${selected.replace("models/", "")}:generateContent?key=${state.apiKey}`;
+          document.getElementById("modelName").textContent = selected.replace("models/", "");
+      } catch (e) {
+          console.error("Model fetch error", e);
+          document.getElementById("modelName").textContent = "Gemini Basic";
+          state.modelEndpoint = `${BASE_URL}/gemini-pro:generateContent?key=${state.apiKey}`;
+      }
+  }
+
+  // --- SEARCH ---
+  window.openSearch = () => { document.getElementById('searchOverlay').classList.add('visible'); setTimeout(() => document.getElementById('spotlightInput').focus(), 100); };
+  window.closeSearch = (e) => { if (!e || e.target.id === 'searchOverlay') document.getElementById('searchOverlay').classList.remove('visible'); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.getElementById('searchOverlay').classList.remove('visible'); });
 
   window.handleSearch = () => {
       const query = document.getElementById('spotlightInput').value.toLowerCase();
       const resultsDiv = document.getElementById('searchResults');
       resultsDiv.innerHTML = "";
-
-      if (!query) {
-          resultsDiv.innerHTML = `<div class="no-results">Type to search...</div>`;
-          return;
-      }
-
+      if (!query) { resultsDiv.innerHTML = `<div class="no-results">Type to search...</div>`; return; }
       const matches = state.chats.filter(c => c.title.toLowerCase().includes(query));
-
-      if (matches.length === 0) {
-          resultsDiv.innerHTML = `<div class="no-results">No chats found.</div>`;
-      } else {
+      if (matches.length === 0) { resultsDiv.innerHTML = `<div class="no-results">No chats found.</div>`; } 
+      else {
           matches.forEach(c => {
               const div = document.createElement('div');
               div.className = "search-result-item";
-              div.onclick = () => {
-                  window.loadChat(c.id);
-                  document.getElementById('searchOverlay').classList.remove('visible');
-              };
-              div.innerHTML = `
-                  <span class="search-match-text">${c.title}</span>
-                  <span class="search-date">${new Date(c.time).toLocaleDateString()}</span>
-              `;
+              div.onclick = () => { window.loadChat(c.id); document.getElementById('searchOverlay').classList.remove('visible'); };
+              div.innerHTML = `<span class="search-match-text">${c.title}</span><span class="search-date">${new Date(c.time).toLocaleDateString()}</span>`;
               resultsDiv.appendChild(div);
           });
       }
   };
 
-  // --- MODEL SELECTION ---
-  async function findModel() {
-      try {
-          const req = await fetch(`${BASE_URL}?key=${API_KEY}`);
-          const res = await req.json();
-          const availableModels = res.models || [];
-          const preferred = ["models/gemini-2.0-flash", "models/gemini-2.0-flash-lite", "models/gemini-1.5-pro"];
-          const selected = preferred.find(p => availableModels.some(m => m.name === p)) || availableModels[0]?.name || "gemini-pro";
-          console.log("Selected Model:", selected);
-          state.modelEndpoint = `${BASE_URL}/${selected.replace("models/", "")}:generateContent?key=${API_KEY}`;
-          document.getElementById("modelName").textContent = selected.replace("models/", "");
-      } catch (e) {
-          console.error("Model fetch error", e);
-          document.getElementById("modelName").textContent = "Gemini Basic";
-          state.modelEndpoint = `${BASE_URL}/gemini-pro:generateContent?key=${API_KEY}`;
-      }
-  }
-
-  // --- GLOBAL AUTH HANDLERS ---
+  // --- AUTH HANDLERS ---
   window.switchTab = (tab) => {
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.auth-tab')[tab === 'login' ? 0 : 1].classList.add('active');
@@ -558,34 +463,19 @@
       document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
   };
 
-  window.loginWithGoogle = async () => {
-      try { await signInWithPopup(auth, googleProvider); } 
-      catch (err) { showError('loginStatus', err.message); }
-  };
-
+  window.loginWithGoogle = async () => { try { await signInWithPopup(auth, googleProvider); } catch (err) { showError('loginStatus', err.message); } };
   window.handleEmailLogin = async () => {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
-      try { await signInWithEmailAndPassword(auth, email, pass); } 
-      catch (err) { showError('loginStatus', "Invalid email or password"); }
+      try { await signInWithEmailAndPassword(auth, email, pass); } catch (err) { showError('loginStatus', "Invalid email or password"); }
   };
-
   window.handleForgotPassword = async () => {
       const email = document.getElementById('loginEmail').value;
-      if (!email) return Swal.fire({ title:'Error', text:'Please enter your email in the box first.', icon:'error', heightAuto: false });
-      try { 
-          await sendPasswordResetEmail(auth, email); 
-          Swal.fire({ title:'Sent!', text:'Password reset email sent!', icon:'success', heightAuto: false });
-      } 
-      catch (err) { Swal.fire({ title:'Error', text:err.message, icon:'error', heightAuto: false }); }
+      if (!email) return Swal.fire({ title:'Error', text:'Please enter your email.', icon:'error', heightAuto: false });
+      try { await sendPasswordResetEmail(auth, email); Swal.fire({ title:'Sent!', text:'Reset email sent!', icon:'success', heightAuto: false }); } catch (err) { Swal.fire({ title:'Error', text:err.message, icon:'error', heightAuto: false }); }
   };
 
-  window.setupRecaptcha = () => {
-      if(!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-      }
-  };
-
+  window.setupRecaptcha = () => { if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' }); };
   window.sendOtp = async () => {
       const phone = document.getElementById('signupPhone').value;
       if(phone.length < 10) return showError('signupStatus', "Invalid Phone");
@@ -595,39 +485,21 @@
           state.confirmationResult = confirmation;
           document.getElementById('otpSection').classList.add('visible');
           document.getElementById('sendOtpBtn').innerText = "Resend";
-          Swal.fire({
-              position: 'top-end',
-              icon: 'success',
-              title: 'OTP Sent to your phone',
-              showConfirmButton: false,
-              timer: 1500,
-              background: '#1f2937',
-              color: '#fff',
-              heightAuto: false
-          });
+          Swal.fire({ position: 'top-end', icon: 'success', title: 'OTP Sent', showConfirmButton: false, timer: 1500, background: '#1f2937', color: '#fff', heightAuto: false });
       } catch (err) { showError('signupStatus', "SMS Error: " + err.message); }
   };
-
   window.verifyOtp = async () => {
       const code = document.getElementById('otpInput').value;
       try {
           await state.confirmationResult.confirm(code);
           state.isPhoneVerified = true;
-          document.getElementById('otpSection').innerHTML = `<span style="color:#10b981; font-weight:bold;">✓ Phone Verified</span>`;
+          document.getElementById('otpSection').innerHTML = `<span style="color:#10b981; font-weight:bold;">✓ Verified</span>`;
           document.getElementById('finalSignupBtn').disabled = false;
-          Swal.fire({
-            title: 'Verified!',
-            text: 'Phone verified. Click Create Account.',
-            icon: 'success',
-            background: '#1f2937',
-            color: '#fff',
-            heightAuto: false
-          });
+          Swal.fire({ title: 'Verified!', text: 'Click Create Account.', icon: 'success', background: '#1f2937', color: '#fff', heightAuto: false });
       } catch (err) { showError('signupStatus', "Invalid Code"); }
   };
-
   window.handleSignup = async () => {
-      if(!state.isPhoneVerified) return Swal.fire({ title: 'Wait!', text: 'Please verify your phone number first.', icon: 'warning', heightAuto: false });
+      if(!state.isPhoneVerified) return Swal.fire({ title: 'Wait!', text: 'Verify phone first.', icon: 'warning', heightAuto: false });
       const email = document.getElementById('signupEmail').value;
       const pass = document.getElementById('signupPass').value;
       const name = document.getElementById('signupName').value;
@@ -639,161 +511,73 @@
       } catch (err) { showError('signupStatus', err.message); }
   };
 
-  // --- LOGOUT WITH CONFIRMATION ---
   window.logout = () => {
       Swal.fire({
-          title: 'Logout?',
-          text: "Are you sure you want to sign out?",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, Logout',
-          heightAuto: false // Stops background shifting
-      }).then((result) => {
-          if (result.isConfirmed) {
-              signOut(auth);
-          }
-      });
+          title: 'Logout?', text: "Are you sure?", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Logout', heightAuto: false
+      }).then((result) => { if (result.isConfirmed) signOut(auth); });
   };
 
-  function showError(id, msg, isSuccess = false) {
-      const el = document.getElementById(id);
-      el.innerText = msg;
-      el.className = "status-msg " + (isSuccess ? "status-success" : "status-error");
-  }
-
+  function showError(id, msg) { const el = document.getElementById(id); el.innerText = msg; el.className = "status-msg status-error"; }
   function updateProfileUI(user) {
-      const nameEl = document.getElementById('uiName');
-      const emailEl = document.getElementById('uiEmail');
-      const avatarEl = document.getElementById('uiAvatar');
-      
-      const defaultAvatar = "https://p7.hiclipart.com/preview/340/956/944/computer-icons-user-profile-head-ico-download-thumbnail.jpg";
-
-      if(nameEl) nameEl.innerText = user.displayName || "User";
-      if(emailEl) emailEl.innerText = user.email;
-      
-      // Use Google Photo if available, else use default provided
-      if(avatarEl) {
-        //   avatarEl.src = user.photoURL ? user.photoURL : defaultAvatar;
-      }
+      document.getElementById('uiName').innerText = user.displayName || "User";
+      document.getElementById('uiEmail').innerText = user.email;
+      if(user.photoURL) document.getElementById('uiAvatar').src = user.photoURL;
   }
 
-  // --- CHAT LOGIC ---
-
+  // --- DATA SYNC ---
   async function loadUserData(uid) {
       try {
           const docRef = doc(db, "users", uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().chats) {
-              state.chats = docSnap.data().chats;
-          } else {
-              state.chats = [];
-              window.createNewChat();
-          }
+          if (docSnap.exists() && docSnap.data().chats) state.chats = docSnap.data().chats;
+          else { state.chats = []; window.createNewChat(); }
           if(state.chats.length > 0) window.loadChat(state.chats[0].id);
           renderSidebar();
       } catch(e) { console.error("Load Error:", e); }
   }
-
   async function saveToCloud() {
       if(!state.user) return;
-      try { await setDoc(doc(db, "users", state.user.uid), { chats: state.chats }, { merge: true }); } 
-      catch(e) { console.error("Save error:", e); }
+      try { await setDoc(doc(db, "users", state.user.uid), { chats: state.chats }, { merge: true }); } catch(e) { console.error("Save error:", e); }
   }
 
-  // --- NEW FEATURES: RENAME & DELETE ---
-
+  // --- CHAT ACTIONS ---
   window.deleteChat = (e, id) => {
       e.stopPropagation(); 
-      
-      Swal.fire({
-          title: 'Delete Chat?',
-          text: "You won't be able to revert this!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, delete it!',
-          heightAuto: false
-      }).then((result) => {
+      Swal.fire({ title: 'Delete Chat?', text: "Can't revert this!", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete!', heightAuto: false })
+      .then((result) => {
           if (result.isConfirmed) {
               state.chats = state.chats.filter(c => c.id !== id);
-              
-              if (id === state.activeChatId) {
-                  if (state.chats.length > 0) {
-                      state.activeChatId = state.chats[0].id;
-                  } else {
-                      window.createNewChat();
-                      return; 
-                  }
-              }
-              saveToCloud();
-              renderSidebar();
-              renderMessages();
-              Swal.fire({
-                  title: 'Deleted!',
-                  text: 'Your chat has been deleted.',
-                  icon: 'success',
-                  timer: 1000,
-                  showConfirmButton: false,
-                  heightAuto: false
-              });
+              if (id === state.activeChatId) { state.chats.length > 0 ? state.activeChatId = state.chats[0].id : window.createNewChat(); return; }
+              saveToCloud(); renderSidebar(); renderMessages();
+              Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1000, showConfirmButton: false, heightAuto: false });
           }
       })
   };
-
   window.renameChat = async (e, id) => {
       e.stopPropagation();
       const chat = state.chats.find(c => c.id === id);
       if (!chat) return;
-
-      const { value: newTitle } = await Swal.fire({
-          title: 'Rename Project',
-          input: 'text',
-          inputValue: chat.title,
-          showCancelButton: true,
-          inputValidator: (value) => {
-              if (!value) { return 'You need to write something!' }
-          },
-          heightAuto: false
-      });
-
-      if (newTitle) {
-          chat.title = newTitle.trim();
-          saveToCloud();
-          renderSidebar();
-      }
+      const { value: newTitle } = await Swal.fire({ title: 'Rename', input: 'text', inputValue: chat.title, showCancelButton: true, heightAuto: false });
+      if (newTitle) { chat.title = newTitle.trim(); saveToCloud(); renderSidebar(); }
   };
-
   window.createNewChat = () => {
       const id = Date.now().toString();
       state.chats.unshift({ id, title: "New Project", msgs: [], time: Date.now() });
       state.activeChatId = id;
-      saveToCloud();
-      renderSidebar();
-      renderMessages();
+      saveToCloud(); renderSidebar(); renderMessages();
   };
-
-  window.loadChat = (id) => {
-      state.activeChatId = id;
-      renderSidebar();
-      renderMessages();
-  };
+  window.loadChat = (id) => { state.activeChatId = id; renderSidebar(); renderMessages(); };
 
   window.sendMessage = async () => {
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if(!text) return;
       input.value = "";
-      
       const chat = state.chats.find(c => c.id === state.activeChatId);
       chat.msgs.push({ role: "user", text });
-      // Update title if it's the first message and still "New Project"
-      if(chat.msgs.length === 1 && chat.title === "New Project") {
-          chat.title = text.substring(0, 20) + (text.length > 20 ? "..." : "");
-          renderSidebar();
-      }
-      
+      if(chat.msgs.length === 1 && chat.title === "New Project") { chat.title = text.substring(0, 20) + "..."; renderSidebar(); }
       appendMessageUI("user", text);
       
-      // Loading
       const loadingId = "load-" + Date.now();
       const container = document.getElementById('messages');
       const div = document.createElement('div');
@@ -805,20 +589,14 @@
 
       try {
           const contents = chat.msgs.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] }));
-          const res = await fetch(state.modelEndpoint, {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents })
-          });
+          const res = await fetch(state.modelEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents }) });
           const data = await res.json();
-          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error getting response.";
-          
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error.";
           document.getElementById(loadingId).remove();
           chat.msgs.push({ role: "model", text: reply });
           appendMessageUI("model", reply, true);
           saveToCloud(); 
-      } catch(e) {
-          document.getElementById(loadingId).innerHTML = `<div class="avatar">AI</div><div class="msg-content">Connection Error.</div>`;
-      }
+      } catch(e) { document.getElementById(loadingId).innerHTML = "Connection Error."; }
   };
 
   window.renderSidebar = () => {
@@ -828,13 +606,7 @@
           const div = document.createElement('div');
           div.className = `chat-item ${c.id === state.activeChatId ? 'active' : ''}`;
           div.onclick = () => window.loadChat(c.id);
-          div.innerHTML = `
-              <span class="chat-title-text">${c.title}</span>
-              <div class="chat-actions">
-                  <button class="icon-btn" onclick="renameChat(event, '${c.id}')">✎</button>
-                  <button class="icon-btn btn-delete" onclick="deleteChat(event, '${c.id}')">×</button>
-              </div>
-          `;
+          div.innerHTML = `<span class="chat-title-text">${c.title}</span><div class="chat-actions"><button class="icon-btn" onclick="renameChat(event, '${c.id}')">✎</button><button class="icon-btn btn-delete" onclick="deleteChat(event, '${c.id}')">×</button></div>`;
           list.appendChild(div);
       });
   };
@@ -842,20 +614,13 @@
   window.renderMessages = () => {
       const container = document.getElementById('messages');
       container.innerHTML = "";
-      
       const chat = state.chats.find(c => c.id === state.activeChatId);
-      
       if (!chat || chat.msgs.length === 0) {
-          const firstName = state.user?.displayName?.split(' ')[0] || "there";
-          container.innerHTML = `
-            <div class="welcome-screen">
-                <h1>How can I help you, ${firstName}?</h1>
-                <p>I can help you write code, plan projects, or answer questions.</p>
-            </div>
-          `;
+          const firstName = state.user?.displayName?.split(' ')[0] || "Student";
+          container.innerHTML = `<div class="welcome-screen">  <h1>How can I help you, ${firstName}?</h1>
+                <p>I can help you write code, plan projects, or answer questions.</p></div>`;
           return;
       }
-
       chat.msgs.forEach(m => appendMessageUI(m.role, m.text));
   };
 
@@ -863,28 +628,17 @@
       const container = document.getElementById('messages');
       const div = document.createElement('div');
       div.className = `message ${role}`;
-      const content = parseMarkdown(text);
-      div.innerHTML = `<div class="avatar">${role === 'user' ? 'U' : 'AI'}</div><div class="msg-content">${content}</div>`;
+      div.innerHTML = `<div class="avatar">${role === 'user' ? 'U' : 'AI'}</div><div class="msg-content">${parseMarkdown(text)}</div>`;
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
   }
 
   function parseMarkdown(text) {
-      return text
-          .replace(/</g, "&lt;").replace(/>/g, "&gt;")
-          .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-          .replace(/`([^`]+)`/g, '<code>$1</code>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
+      return text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
   }
 
-  window.handleKey = (e) => {
-     if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  };
-
-  window.toggleDesktopSidebar = () => {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-  };
+  window.handleKey = (e) => { if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  window.toggleDesktopSidebar = () => { document.getElementById('sidebar').classList.toggle('collapsed'); };
 </script>
 </body>
 </html>
