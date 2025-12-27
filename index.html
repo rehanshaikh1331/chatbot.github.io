@@ -13,7 +13,7 @@
 
 <style>
     :root {
-        --glass-bg: rgba(15, 23, 42, 0.85);
+        --glass-bg: rgba(15, 23, 42, 0.95);
         --glass-border: rgba(255, 255, 255, 0.1);
         --glass-highlight: rgba(255, 255, 255, 0.05);
         --accent: #8b5cf6;
@@ -31,7 +31,7 @@
     /* SWEETALERT OVERRIDES */
     body.swal2-shown { padding-right: 0 !important; height: 100vh !important; overflow: hidden !important; }
     div:where(.swal2-container) div:where(.swal2-popup) {
-        background: rgba(30, 41, 59, 0.95) !important;
+        background: rgba(30, 41, 59, 0.98) !important;
         backdrop-filter: blur(20px) !important;
         border: 1px solid var(--glass-border) !important;
         border-radius: 20px !important;
@@ -378,7 +378,11 @@
           state.user = user;
           if (user) {
               document.getElementById('authOverlay').classList.remove('visible');
-              updateProfileUI(user);
+              
+              // FIX: Initialize with current auth data first to avoid "User" flash
+              if(user.displayName) document.getElementById('uiName').innerText = user.displayName;
+              document.getElementById('uiEmail').innerText = user.email;
+
               await fetchApiKey(); 
               await loadUserData(user.uid);
           } else {
@@ -583,13 +587,18 @@
       });
 
       try {
+          // 1. Create Auth User
           const userCred = await createUserWithEmailAndPassword(auth, email, pass);
           const user = userCred.user;
           
-          // 1. UPDATE AUTH PROFILE (Immediate display name fix)
+          // 2. IMMEDIATE UI UPDATE (Fixes "User" race condition)
+          document.getElementById('uiName').innerText = name;
+          document.getElementById('uiEmail').innerText = email;
+
+          // 3. Update Auth Profile
           await updateProfile(user, { displayName: name });
 
-          // 2. SAVE TO FIRESTORE
+          // 4. Save to Firestore (Merge prevents overwrites)
           await setDoc(doc(db, "users", user.uid), { 
               uid: user.uid, 
               name: name, 
@@ -597,7 +606,7 @@
               phone: phone, 
               createdAt: new Date(), 
               chats: [] 
-          });
+          }, { merge: true });
           
           Swal.close();
       } catch (err) { 
@@ -619,7 +628,6 @@
       const emailEl = document.getElementById('uiEmail');
       const avatarEl = document.getElementById('uiAvatar');
       
-      // Fallback if displayName is null (e.g. older accounts)
       if(nameEl) nameEl.innerText = user.displayName || "User";
       if(emailEl) emailEl.innerText = user.email;
       if(avatarEl && user.photoURL) avatarEl.src = user.photoURL;
@@ -630,12 +638,21 @@
       try {
           const docRef = doc(db, "users", uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().chats) state.chats = docSnap.data().chats;
-          else { state.chats = []; window.createNewChat(); }
+          
+          // Double check name from DB in case Auth was slow
+          if(docSnap.exists()) {
+              const data = docSnap.data();
+              if(data.name) document.getElementById('uiName').innerText = data.name;
+              if(data.chats) state.chats = data.chats;
+          } else { 
+              state.chats = []; window.createNewChat(); 
+          }
+          
           if(state.chats.length > 0) window.loadChat(state.chats[0].id);
           renderSidebar();
       } catch(e) { console.error("Load Error:", e); }
   }
+  
   async function saveToCloud() {
       if(!state.user) return;
       try { await setDoc(doc(db, "users", state.user.uid), { chats: state.chats }, { merge: true }); } catch(e) { console.error("Save error:", e); }
